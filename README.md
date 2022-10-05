@@ -1,7 +1,7 @@
 # README
 ### Notice
 
-Please contact the authors of [Huang et al. (2020)](https://iopscience.iop.org/article/10.3847/1538-4365/ab994f) to get the fits file that contains the kinematics data of the Red Clump sample.
+Please contact the authors of [Huang et al. (2020)](https://iopscience.iop.org/article/10.3847/1538-4365/ab994f), or visit https://zenodo.org/record/3875974 to get the fits file that contains the kinematics data of the Red Clump sample. 
 
 ### Installation
 
