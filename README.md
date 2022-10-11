@@ -5,7 +5,7 @@ Please contact the authors of [Huang et al. (2020)](https://iopscience.iop.org/a
 
 ### Installation
 
-1. Install Intel (R) OneAPI and icc compiler.
+1. Install Intel$^®$ OneAPI and icc compiler. (Check installation of [Intel$^®$ oneAPI Base Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html) and [Intel$^®$ oneAPI HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit-download.html). )
 2. Install GSL: `./configure CC=icc; make -j 4; make install`.
 3. Build and run: `make && ./directsum`.
 
