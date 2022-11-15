@@ -49,7 +49,7 @@ class DSProfileW22(object):
     def __init__(self):
         # read poi-2022.edp outputs
         # result = "/Users/mahaixia/Git_Workspace/phantom2/dsmatrix-GAIA-W21.ds"
-        result = "/Users/ydzhu/workspace/phantom-2.2/dsmatrix-GAIA-W21.ds"
+        result = "PotentialSolver/dsmatrix-GAIA-W21.ds"
         with open(result, 'rb') as f:
             N = np.fromfile(f, dtype=np.intc, count=1)[0]
             dsR = np.fromfile(f, np.double, N)

@@ -6,7 +6,7 @@
     - Apr 23, 2022; In this version, we only compare the observational term to the predicted rho*d_phi/d_R or rho*d_phi/d_z;
 """
 import warnings
-import obs_gaia2
+import obs_gaia2_thin
 import obs_binney2014_rc
 # from GalPot import GalaxyPotential
 import globalvars
@@ -45,11 +45,10 @@ KPCpMYRtKMpS = 978.4620750887875
 
 h = 0.005
 
-class DSProfileM17(object):
+class DSProfileW22(object):
     def __init__(self):
         # read poi-2022.edp outputs
-        # result = "/Users/mahaixia/Git_Workspace/phantom2/dsmatrix-GAIA-M17.ds"
-        result = "PotentialSolver/dsmatrix-GAIA-M17.ds"
+        result = "PotentialSolver/dsmatrix-GAIA-W21.ds"
         with open(result, 'rb') as f:
             N = np.fromfile(f, dtype=np.intc, count=1)[0]
             dsR = np.fromfile(f, np.double, N)
@@ -65,20 +64,24 @@ class DSProfileM17(object):
         self.interp_MoffatPhi = lambda x, y: interp.griddata(np.array([dsR, dsz]).T, dsMoffatPhi, np.array([x, y]).T, method="cubic")[0]
         self.interp_rho = lambda x, y: interp.griddata(np.array([dsR, dsz]).T, dsrho, np.array([x, y]).T, method="cubic")[0]
 
-    # add thin disk of M17
+    # add thin disk of W22
     def thin_disk_density(self, R, z):
-        Sigma0thin = 952e6
-        Rdthin = 2.40037
+        # parameter
+        Sigma0thin = 1057.5e6
+        Rdthin = 2.39
         zdthin = 0.3
 
-        return 0.5*Sigma0thin/zdthin*np.exp(-np.abs(z)/zdthin - R/Rdthin)
+        # function
+        return 0.5*Sigma0thin/zdthin*np.exp(-abs(z)/zdthin - R/Rdthin)
 
     def thick_disk_density(self, R, z):
-        Sigma0thick = 119e6
-        Rdthick = 3.47151
+        # parameter
+        Sigma0thick = 167.76e6
+        Rdthick = 3.20
         zdthick = 0.9
 
-        return 0.5*Sigma0thick/zdthick*np.exp(-np.abs(z)/zdthick - R/Rdthick)
+        # function
+        return 0.5*Sigma0thick/zdthick*np.exp(-abs(z)/zdthick - R/Rdthick)
 
     def total_disk_density(self, R, z):
         return 0.85*self.thin_disk_density(R, z) + 0.15*self.thick_disk_density(R, z) # no gas!
@@ -258,9 +261,9 @@ def rotation_curve(Rlist: np.ndarray, galaxy, mode=None):
     else:
         return V
 
-def _1d_data(obs, z, Rlist, model="M17", density_type="thin profile"):
-    if model == "M17":
-        galaxy = DSProfileM17()
+def _1d_data(obs, z, Rlist, model="W22", density_type="thin profile"):
+    if model == "W22":
+        galaxy = DSProfileW22()
     else:
         print("ERROR: model unavailable!", model)
         exit()
@@ -294,8 +297,8 @@ def _1d_data(obs, z, Rlist, model="M17", density_type="thin profile"):
     if obs == "gaia2":
 
         for i in range(len(Rlist)):
-            TR[i], Tz[i], dTR[i], dTz[i] = JeansTests(Rlist[i], z, galaxy, tracer_profile, obs_gaia2.sigmaR, obs_gaia2.EsigmaR,
-                                                obs_gaia2.sigmaz, obs_gaia2.Esigmaz, obs_gaia2.sigmaT, obs_gaia2.EsigmaT, obs_gaia2.VT, obs_gaia2.EVT, obs_gaia2.alpha)
+            TR[i], Tz[i], dTR[i], dTz[i] = JeansTests(Rlist[i], z, galaxy, tracer_profile, obs_gaia2_thin.sigmaR, obs_gaia2_thin.EsigmaR,
+                                                obs_gaia2_thin.sigmaz, obs_gaia2_thin.Esigmaz, obs_gaia2_thin.sigmaT, obs_gaia2_thin.EsigmaT, obs_gaia2_thin.VT, obs_gaia2_thin.EVT, obs_gaia2_thin.alpha)
             TR[i]*=KPCpMYRtKMpS*KPCpMYRtKMpS
             Tz[i]*=KPCpMYRtKMpS*KPCpMYRtKMpS
             dTR[i]*=KPCpMYRtKMpS*KPCpMYRtKMpS
@@ -343,7 +346,8 @@ def chisqr(obs, exp, error):
 
 if __name__ == "__main__":
     # plot
-    zlist = [1.18, 0.75, 0.44]
+    # zlist = [1.18, 0.75, 0.44]
+    zlist = [0.1, 0.2, 0.3]
     Rlist = np.arange(6, 12, 0.5)
 
     binney_rlist = np.array([[7.52, 8.37], [7.48, 8.41], [7.51, 8.36], [7.61, 8.36]])
@@ -352,6 +356,7 @@ if __name__ == "__main__":
     linecolor = ["C1", "C0", "green", "C3"]
 
     ds = "mid"
+
     if True:
         # Figure TR, Tz
         figR, axrcR = plt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(13, 4))
@@ -361,7 +366,7 @@ if __name__ == "__main__":
                 axrcR[i].tick_params(direction="in", which="both")
                 axrcR[i].xaxis.set_ticks_position('both')
                 axrcR[i].yaxis.set_ticks_position('both')
-                # axrcR[i][j].set_ylim(-0.62, 0.5)
+                axrcR[i].set_ylim(-10000, 10000)
                 # axrcR[i][j].set_ylim(1e-2, 1e6)
                 # axrcR[i][j].set_yscale("log")
                 axrcz[i].minorticks_on()
@@ -387,8 +392,9 @@ if __name__ == "__main__":
         array_GTz  = []
 
         zidx = 0
+    
         for i in range(3):
-                TR, Tz, dTR, dTz, NTR, DTR, MTR, GTR, NTz, DTz, MTz, GTz = _1d_data("gaia2", zlist[zidx], Rlist, model="M17", density_type="thin + thick profile")
+                TR, Tz, dTR, dTz, NTR, DTR, MTR, GTR, NTz, DTz, MTz, GTz = _1d_data("gaia2", zlist[zidx], Rlist, model="W22", density_type="thin profile")
                 array_TR  .append(TR)
                 array_Tz  .append(Tz)
                 array_dTR .append(dTR)
@@ -425,24 +431,22 @@ if __name__ == "__main__":
                 # print(MTz, GTz)
 
                 # binney
-                TR, Tz, dTR, dTz, _, _, _, _, _, _, _, _ = _1d_data("binney2014", zlist[zidx], binney_rlist[zidx], model="M17", density_type="thin + thick profile")
+                TR, Tz, dTR, dTz, _, _, _, _, _, _, _, _ = _1d_data("binney2014", zlist[zidx], binney_rlist[zidx], model="W22", density_type="thin + thick profile")
                 # print(TR, Tz, dTR, dTz)
-                axrcR[i].errorbar(binney_rlist[zidx], TR, yerr=dTR, ls="none", capsize=2, elinewidth=0.6, c="k", marker="D", ms=2, zorder=10)
-                axrcz[i].errorbar(binney_rlist[zidx], Tz, yerr=dTz, ls="none", capsize=2, elinewidth=0.6, c="k", marker="D", ms=2, zorder=10)
+                # axrcR[i].errorbar(binney_rlist[zidx], TR, yerr=dTR, ls="none", capsize=2, elinewidth=0.6, c="k", marker="D", ms=2, zorder=10)
+                # axrcz[i].errorbar(binney_rlist[zidx], Tz, yerr=dTz, ls="none", capsize=2, elinewidth=0.6, c="k", marker="D", ms=2, zorder=10)
                 # legend
                 if i == 1:
                     axrcR[i].legend([(line_R_obs, shade_R_obs), line_R_qmd, line_R_cdm, line_R_mog, line_R_net], 
                                     ["Observation", "QUMOND", "Newtonian + DM", "MOG", "Newtonian"], frameon=False, fontsize=10, loc="upper right")
                     axrcz[i].legend([(line_z_obs, shade_z_obs), line_z_qmd, line_z_cdm, line_z_mog, line_z_net], 
                                     ["Observation", "QUMOND", "Newtonian + DM", "MOG", "Newtonian"], frameon=False, fontsize=10, loc="upper right")
-                    # axrcR[i].plot([9.3, 9.7], [8000, 8000], "--", c="k", lw=1.0)
-                    # axrcz[i].plot([9.3, 9.7], [4950, 4950], "--", c="k", lw=1.0)
 
                 
                 zidx = zidx + 1
 
-        # axrcR[0].text(0.84, 0.9, "M17", transform=axrcR[0].transAxes, color="b")
-        # axrcz[0].text(0.84, 0.9, "M17", transform=axrcz[0].transAxes, color="b")
+        # axrcR[0].text(0.84, 0.9, "W22", transform=axrcR[0].transAxes, color="b")
+        # axrcz[0].text(0.84, 0.9, "W22", transform=axrcz[0].transAxes, color="b")
 
         figR.tight_layout(rect=(0.04, 0.04, 0.97, 0.97))
         figR.subplots_adjust(hspace=0, wspace=0)
@@ -453,12 +457,12 @@ if __name__ == "__main__":
         figz.subplots_adjust(hspace=0, wspace=0)
         figz.text(0.5, 0.03, r"$R~[\rm kpc]$", ha='center')
         figz.text(0.03, 0.5, r"$T_z~[\rm (km/s)^2/kpc]$", va='center', rotation='vertical')
-        figR.savefig("TR-M17.pdf")
-        figz.savefig("Tz-M17.pdf")
+        figR.savefig("TR-W22-thin.pdf")
+        figz.savefig("Tz-W22-thin.pdf")
         # plt.show()
 
         plt.close()
-
+    
         array_TR =np.concatenate(array_TR )
         array_Tz =np.concatenate(array_Tz )
         array_dTR =np.concatenate(array_dTR )
@@ -471,14 +475,161 @@ if __name__ == "__main__":
         array_DTz =np.concatenate(array_DTz )
         array_MTz =np.concatenate(array_MTz )
         array_GTz =np.concatenate(array_GTz )
-        print("chi2 M17 TR", "Newton ", chisqr(array_NTR, array_TR, array_dTR))
-        print("chi2 M17 Tz", "Newton ", chisqr(array_NTz, array_Tz, array_dTz))
-        print("chi2 M17 TR", "Colddm ", chisqr(array_DTR, array_TR, array_dTR))
-        print("chi2 M17 Tz", "Colddm ", chisqr(array_DTz, array_Tz, array_dTz))
-        print("chi2 M17 TR", "QUMOND ", chisqr(array_MTR, array_TR, array_dTR))
-        print("chi2 M17 Tz", "QUMOND ", chisqr(array_MTz, array_Tz, array_dTz))
-        print("chi2 M17 TR", "MOG    ", chisqr(array_GTR, array_TR, array_dTR))
-        print("chi2 M17 Tz", "MOG    ", chisqr(array_GTz, array_Tz, array_dTz))
+        print("chi2 W22 TR", "Newton ", chisqr(array_NTR, array_TR, array_dTR))
+        print("chi2 W22 Tz", "Newton ", chisqr(array_NTz, array_Tz, array_dTz))
+        print("chi2 W22 TR", "Colddm ", chisqr(array_DTR, array_TR, array_dTR))
+        print("chi2 W22 Tz", "Colddm ", chisqr(array_DTz, array_Tz, array_dTz))
+        print("chi2 W22 TR", "QUMOND ", chisqr(array_MTR, array_TR, array_dTR))
+        print("chi2 W22 Tz", "QUMOND ", chisqr(array_MTz, array_Tz, array_dTz))
+        print("chi2 W22 TR", "MOG    ", chisqr(array_GTR, array_TR, array_dTR))
+        print("chi2 W22 Tz", "MOG    ", chisqr(array_GTz, array_Tz, array_dTz))
 
-    print("all set!")
-    exit()
+    
+    if True:
+        # Figure TR, Tz : 4x3
+        # tracers = ["thick disk"]
+        zlist = [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9], [1.0, 1.1, 1.2]]
+        figR, axrcR = plt.subplots(nrows=4, ncols=3, sharex=True, sharey=True, figsize=(13, 12))
+        figz, axrcz = plt.subplots(nrows=4, ncols=3, sharex=True, sharey=True, figsize=(13, 12))
+        for i in range(len(axrcR)):
+            for j in range(len(axrcR[i])):
+                axrcR[i][j].minorticks_on()
+                axrcR[i][j].tick_params(direction="in", which="both")
+                axrcR[i][j].xaxis.set_ticks_position('both')
+                axrcR[i][j].yaxis.set_ticks_position('both')
+                # axrcR[i][j].set_ylim(-0.7, 0.7)
+                axrcz[i][j].minorticks_on()
+                axrcz[i][j].tick_params(direction="in", which="both")
+                axrcz[i][j].xaxis.set_ticks_position('both')
+                axrcz[i][j].yaxis.set_ticks_position('both')
+                # axrcz[i][j].set_ylim(-2, 5.9)
+
+        for i in range(len(zlist)):
+            for j in range(len(zlist[i])):
+                TR, Tz, dTR, dTz, NTR, DTR, MTR, GTR, NTz, DTz, MTz, GTz = _1d_data("gaia2", zlist[i][j], Rlist, model="W22", density_type="thin profile")
+                ds2 = "steps-mid"
+                ds2 = None
+
+                axrcR[i][j].text(0.15, 0.9, r"$z=%2.1f~{\rm kpc}$"%zlist[i][j], transform=axrcR[i][j].transAxes)
+                # axrcR[i][j].text(0.15, 0.8, tracers[j], transform=axrcR[i][j].transAxes, color="b", ha="left")
+                line_R_obs, = axrcR[i][j].plot(Rlist,TR, "--", c="k", lw=1.0)
+                shade_R_obs = axrcR[i][j].fill_between(Rlist, TR - dTR, TR + dTR, facecolor="sandybrown", alpha=0.4, label="Observation")
+                axrcR[i][j].fill_between(Rlist, TR - 2*dTR, TR + 2*dTR, facecolor="sandybrown", alpha=0.2)
+                line_R_net, = axrcR[i][j].plot(Rlist, NTR, c=linecolor[0], alpha=1, ds=ds2, lw=0.8, label="Newtonian", ls="-.")
+                line_R_mog, = axrcR[i][j].plot(Rlist, GTR, c=linecolor[3], alpha=1, ds=ds2, label="MOG", ls="dotted")
+                line_R_cdm, = axrcR[i][j].plot(Rlist, DTR, c=linecolor[1], alpha=1, ds=ds2, label="Newtonian + DM", ls=(0, (5, 1)))
+                line_R_qmd, = axrcR[i][j].plot(Rlist, MTR, c=linecolor[2], alpha=1, ds=ds2, label="QUMOND")
+
+                axrcz[i][j].text(0.15, 0.9, r"$z=%2.1f~{\rm kpc}$"%zlist[i][j], transform=axrcz[i][j].transAxes)
+                # axrcz[i][j].text(0.15, 0.8, tracers[j], transform=axrcz[i][j].transAxes, color="b", ha="left")
+                line_z_obs, = axrcz[i][j].plot(Rlist,Tz, "--", c="k", lw=1.0)
+                shade_z_obs = axrcz[i][j].fill_between(Rlist, Tz - dTz, Tz + dTz, facecolor="sandybrown", alpha=0.4, label="Observation")
+                axrcz[i][j].fill_between(Rlist, Tz - 2*dTz, Tz + 2*dTz, facecolor="sandybrown", alpha=0.2)
+                line_z_net, = axrcz[i][j].plot(Rlist, NTz, c=linecolor[0], alpha=1, ds=ds2, lw=0.8, label="Newtonian", ls="-.")
+                line_z_mog, = axrcz[i][j].plot(Rlist, GTz, c=linecolor[3], alpha=1, ds=ds2, label="MOG", ls="dotted")
+                line_z_cdm, = axrcz[i][j].plot(Rlist, DTz, c=linecolor[1], alpha=1, ds=ds2, label="Newtonian + DM", ls=(0, (5, 1)))
+                line_z_qmd, = axrcz[i][j].plot(Rlist, MTz, c=linecolor[2], alpha=1, ds=ds2, label="QUMOND")
+
+                
+                # legend
+                if i == 0 and j==1:
+                    axrcR[i][j].legend([(line_R_obs, shade_R_obs), line_R_qmd, line_R_cdm, line_R_mog, line_R_net], 
+                                    ["Observation", "QUMOND", "Newtonian + DM", "MOG", "Newtonian"], frameon=False, fontsize=10, loc="upper right")
+                    axrcz[i][j].legend([(line_z_obs, shade_z_obs), line_z_qmd, line_z_cdm, line_z_mog, line_z_net], 
+                                    ["Observation", "QUMOND", "Newtonian + DM", "MOG", "Newtonian"], frameon=False, fontsize=10, loc="upper right")
+
+        figR.tight_layout(rect=(0.04, 0.04, 0.97, 0.97))
+        figR.subplots_adjust(hspace=0, wspace=0)
+        figR.text(0.5, 0.03, r"$R~(\rm kpc)$", ha='center')
+        figR.text(0.03, 0.5, r"$T_R~(\rm (km/s)^2/kpc)$", va='center', rotation='vertical')
+
+        figz.tight_layout(rect=(0.04, 0.04, 0.97, 0.97))
+        figz.subplots_adjust(hspace=0, wspace=0)
+        figz.text(0.5, 0.03, r"$R~(\rm kpc)$", ha='center')
+        figz.text(0.03, 0.5, r"$T_z~(\rm (km/s)^2/kpc)$", va='center', rotation='vertical')
+        # plt.savefigR(global_vars.RESULTS_DIR + "LdPdL.pdf")
+        # print("Fig saved to " + global_vars.RESULTS_DIR + "LdPdL.pdf")
+        figR.savefig("TR-thin-W22-4x3.pdf")
+        figz.savefig("Tz-thin-W22-4x3.pdf")
+    
+    if True:
+        # Figure TR, Tz : tracers
+        tracers = ["thin + thick profile", "thick profile", "thin profile"]
+        # tracers = ["thick disk"]
+        zlist = [2.0, 1.5, 1.18]
+        binney_rlist = np.array([7.52, 8.37])
+        figR, axrcR = plt.subplots(nrows=len(zlist), ncols=3, sharex=True, sharey=True, figsize=(13, 9))
+        figz, axrcz = plt.subplots(nrows=len(zlist), ncols=3, sharex=True, sharey=True, figsize=(13, 9))
+        for i in range(len(axrcR)):
+            for j in range(len(axrcR[i])):
+                axrcR[i][j].minorticks_on()
+                axrcR[i][j].tick_params(direction="in", which="both")
+                axrcR[i][j].xaxis.set_ticks_position('both')
+                axrcR[i][j].yaxis.set_ticks_position('both')
+                # axrcR[i][j].set_ylim(-0.7, 0.7)
+                axrcz[i][j].minorticks_on()
+                axrcz[i][j].tick_params(direction="in", which="both")
+                axrcz[i][j].xaxis.set_ticks_position('both')
+                axrcz[i][j].yaxis.set_ticks_position('both')
+                # axrcz[i][j].set_ylim(-2, 5.9)
+
+        for j in range(len(tracers)):
+            for i in range(len(zlist)):
+                # NTR, DTR, MTR, GTR, NTz, DTz, MTz, GTz, dNTR, dDTR, dMTR, dGTR, dNTz, dDTz, dMTz, dGTz= _1d_data("gaia2", zlist[i], Rlist, model="W22", density_type=tracers[j])
+                TR, Tz, dTR, dTz, NTR, DTR, MTR, GTR, NTz, DTz, MTz, GTz = _1d_data("gaia2", zlist[i], Rlist, model="W22", density_type=tracers[j])
+                ds2 = "steps-mid"
+                ds2 = None
+
+                axrcR[i][j].text(0.15, 0.9, r"$z=%2.1f~{\rm kpc}$"%zlist[i], transform=axrcR[i][j].transAxes)
+                axrcR[i][j].text(0.15, 0.8, tracers[j], transform=axrcR[i][j].transAxes, color="b", ha="left")
+                line_R_obs, = axrcR[i][j].plot(Rlist,TR, "--", c="k", lw=1.0)
+                shade_R_obs = axrcR[i][j].fill_between(Rlist, TR - dTR, TR + dTR, facecolor="sandybrown", alpha=0.4, label="Observation")
+                axrcR[i][j].fill_between(Rlist, TR - 2*dTR, TR + 2*dTR, facecolor="sandybrown", alpha=0.2)
+                line_R_net, = axrcR[i][j].plot(Rlist, NTR, c=linecolor[0], alpha=1, ds=ds2, lw=0.8, label="Newtonian", ls="-.")
+                line_R_mog, = axrcR[i][j].plot(Rlist, GTR, c=linecolor[3], alpha=1, ds=ds2, label="MOG", ls="dotted")
+                line_R_cdm, = axrcR[i][j].plot(Rlist, DTR, c=linecolor[1], alpha=1, ds=ds2, label="Newtonian + DM", ls=(0, (5, 1)))
+                line_R_qmd, = axrcR[i][j].plot(Rlist, MTR, c=linecolor[2], alpha=1, ds=ds2, label="QUMOND")
+
+                axrcz[i][j].text(0.15, 0.9, r"$z=%2.1f~{\rm kpc}$"%zlist[i], transform=axrcz[i][j].transAxes)
+                axrcz[i][j].text(0.15, 0.8, tracers[j], transform=axrcz[i][j].transAxes, color="b", ha="left")
+                line_z_obs, = axrcz[i][j].plot(Rlist,Tz, "--", c="k", lw=1.0)
+                shade_z_obs = axrcz[i][j].fill_between(Rlist, Tz - dTz, Tz + dTz, facecolor="sandybrown", alpha=0.4, label="Observation")
+                axrcz[i][j].fill_between(Rlist, Tz - 2*dTz, Tz + 2*dTz, facecolor="sandybrown", alpha=0.2)
+                line_z_net, = axrcz[i][j].plot(Rlist, NTz, c=linecolor[0], alpha=1, ds=ds2, lw=0.8, label="Newtonian", ls="-.")
+                line_z_mog, = axrcz[i][j].plot(Rlist, GTz, c=linecolor[3], alpha=1, ds=ds2, label="MOG", ls="dotted")
+                line_z_cdm, = axrcz[i][j].plot(Rlist, DTz, c=linecolor[1], alpha=1, ds=ds2, label="Newtonian + DM", ls=(0, (5, 1)))
+                line_z_qmd, = axrcz[i][j].plot(Rlist, MTz, c=linecolor[2], alpha=1, ds=ds2, label="QUMOND")
+
+                
+                if zlist[i] < 1.2 and False:
+                    # binney
+                    TR, Tz, dTR, dTz, _, _, _, _, _, _, _, _ = _1d_data("binney2014", zlist[i], binney_rlist, model="W22", density_type=tracers[j])
+                    # print(TR, Tz, dTR, dTz)
+                    axrcR[i][j].errorbar(binney_rlist, TR, yerr=dTR, ls="none", capsize=2, elinewidth=0.6, c="k", marker="D", ms=2, zorder=10)
+                    axrcz[i][j].errorbar(binney_rlist, Tz, yerr=dTz, ls="none", capsize=2, elinewidth=0.6, c="k", marker="D", ms=2, zorder=10)
+
+                # legend
+                if i == 0 and j==1:
+                    axrcR[i][j].legend([(line_R_obs, shade_R_obs), line_R_qmd, line_R_cdm, line_R_mog, line_R_net], 
+                                    ["Observation", "QUMOND", "Newtonian + DM", "MOG", "Newtonian"], frameon=False, fontsize=10, loc="upper right")
+                    axrcz[i][j].legend([(line_z_obs, shade_z_obs), line_z_qmd, line_z_cdm, line_z_mog, line_z_net], 
+                                    ["Observation", "QUMOND", "Newtonian + DM", "MOG", "Newtonian"], frameon=False, fontsize=10, loc="upper right")
+
+        figR.tight_layout(rect=(0.04, 0.04, 0.97, 0.97))
+        figR.subplots_adjust(hspace=0, wspace=0)
+        figR.text(0.5, 0.03, r"$R~(\rm kpc)$", ha='center')
+        figR.text(0.03, 0.5, r"$T_R~(\rm (km/s)^2/kpc)$", va='center', rotation='vertical')
+
+        figz.tight_layout(rect=(0.04, 0.04, 0.97, 0.97))
+        figz.subplots_adjust(hspace=0, wspace=0)
+        figz.text(0.5, 0.03, r"$R~(\rm kpc)$", ha='center')
+        figz.text(0.03, 0.5, r"$T_z~(\rm (km/s)^2/kpc)$", va='center', rotation='vertical')
+        # plt.savefigR(global_vars.RESULTS_DIR + "LdPdL.pdf")
+        # print("Fig saved to " + global_vars.RESULTS_DIR + "LdPdL.pdf")
+        figR.savefig("TRtracers-W22-RCthin.pdf")
+        figz.savefig("Tztracers-W22-RCthin.pdf")
+    #     # plt.show()
+    #     # plt.close()
+
+print("all set!")
+exit()
