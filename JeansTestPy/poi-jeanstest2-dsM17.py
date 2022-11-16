@@ -37,18 +37,11 @@ print(BASE_DIR, "\n", DS_OUTPUT_DIR)
 
 KPCpMYRtKMpS = 978.4620750887875
 
-## test
-# print(Galaxy.Potential(8, 0))
-# example = StellarDisk("/Users/ydzhu/workspace/JeansTestPy/pot/CDMMCR0.Tpot")
-## test
-
-
 h = 0.005
 
 class DSProfileM17(object):
     def __init__(self):
         # read poi-2022.edp outputs
-        # result = "/Users/mahaixia/Git_Workspace/phantom2/dsmatrix-GAIA-M17.ds"
         result = "PotentialSolver/dsmatrix-GAIA-M17.ds"
         with open(result, 'rb') as f:
             N = np.fromfile(f, dtype=np.intc, count=1)[0]

@@ -18,7 +18,7 @@ double KMpStKPCpMYR = 0.0010220120181042868; // 1000.0/(kpc/Myr);
 double KPCpMYRtKMpS = 978.4620750887875;     // kpc/Myr/1000.0;
 double a0 = 0.0038676205203524152;           // 1.2E-10*MpSStKPCpMYRMYR;
 
-char *MODEL = "W21"; //  name of the model
+char *MODEL = "W22"; //  name of the model
 
 //  model parameters
 double r0 = 0.075;

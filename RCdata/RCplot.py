@@ -20,7 +20,7 @@ legend_config = {
 }
 
 # [0]R, [1]Newtonian, [2]Newtonian+CDM, [3]QUMOND
-model= np.loadtxt("/Users/mahaixia/Git_Workspace/phantom2/directsum_output_2022oct28_onSagitta/dsvel-W21.txt")
+model= np.loadtxt("PotentialSolver/dsvel-W21.txt")
 
 # [0]R, [1]V, [2]Verr(+,-)
 FileList = ("RCdata/Eilers2019.dat",
