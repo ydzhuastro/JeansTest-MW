@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 """
-    分bin计算速度弥散、误差
+    Calculate mean and dispersion of velocities
+    Author: Yongda Zhu (yzhu144@ucr.edu), Hai-Xia Ma
 """
 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import binned_statistic_dd
-# 用法详见 http://scipy.github.io/devdocs/generated/scipy.stats.binned_statistic_dd.html#scipy.stats.binned_statistic_dd
 from scipy.stats import binned_statistic_2d
 from scipy.optimize import curve_fit
 
@@ -72,8 +72,7 @@ def fit_sigma_phi_b14(v_phi):
 
 def bin_statistics_2D_ERR(R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_list, Ev_R_list, Ev_phi_list, Ev_z_list, binsize_R=0.2, binsize_z=0.05, R_max=30, z_max=6):
     """
-        假设轴对称，实现对数据在柱坐标下的分bin，统计每个bin的平均速度、速度误差、速度弥散、速度弥散误差
-        使用bootstrap方法计算std的ste
+        bin the data in cylindrical coordinates and calculate the mean and dispersions of velocities
         
         Args:
             R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_list
@@ -111,68 +110,53 @@ def bin_statistics_2D_ERR(R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_li
 
     count_threshold = 10
 
-    # 所有点的坐标
     sample = np.c_[R_list, z_list]
-    # 设置bin
+    # set bins
     bin_R = np.arange(0, R_max, binsize_R)
     bin_z = np.arange(-z_max, z_max, binsize_z)
     bins = [bin_R, bin_z]
-    # 数一数每个bin里有多少个目标
+    # count objects in each bin
     count, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_R_list, "count", bins)
-    # RR, _, _, _ = binned_statistic_2d(
-    #     R_list, z_list, R_list, np.mean, bins)
-    # zz, _, _, _ = binned_statistic_2d(
-    #     R_list, z_list, z_list, np.mean, bins)
 
-    # count = count.ravel()
-    # RR = RR.ravel()
-    # zz = zz.ravel()
-    # kk = count[(count>50)*(RR>6)*(RR<11.5)*(zz>-2)*(zz<2)]
-    # print(np.quantile(kk, [0.16, 0.5, 0.84]))
-    # exit()
-
-    # 平均速度 R
+    # <v_R>
     v_R_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_R_list, "mean", bins)
     Ev_R_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_R_list, error_of_mean, bins)
-    # 速度弥散 R
+    # sigma_R
     sigma_R_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_R_list, "std", bins)
     Esigma_R_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_R_list, error_of_std, bins)
 
-    # 平均速度 phi
+    # <v_phi>
     v_phi_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_phi_list, "mean", bins)
     Ev_phi_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_phi_list, error_of_mean, bins)
-    # 速度弥散 phi
+    # sigma_phi
     sigma_phi_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_phi_list, fit_sigma_phi_b14, bins)
     Esigma_phi_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_phi_list, error_of_sigmaphi, bins)
 
-    # 平均速度 z
+    # <v_z>
     v_z_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_z_list, "mean", bins)
     Ev_z_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_z_list, error_of_mean, bins)
-    # 速度弥散 z
+    # <sigma_z>
     sigma_z_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_z_list, "std", bins)
     Esigma_z_bin, _, _, _ = binned_statistic_2d(
         R_list, z_list, v_z_list, error_of_std, bins)
 
-    # 算出每个bin的近似中心位置
-    # x, y = np.meshgrid(bin_R[:-1] + binsize_R/2, bin_z[:-1] + binsize_z/2)
-    # R_bin = x
-    # z_bin = y
+    # center of each bin
     R_bin, _, _, _ = binned_statistic_2d(R_list, z_list, R_list, "mean", bins)
     z_bin, _, _, _ = binned_statistic_2d(R_list, z_list, z_list, "mean", bins)
 
-    # 筛选多于10个的bin
+    # filter bins with too few objects
     count = count.ravel()
     idx = np.concatenate(np.argwhere(count > count_threshold))
     count = count[idx]
@@ -193,7 +177,7 @@ def bin_statistics_2D_ERR(R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_li
     Esigma_phi_bin = Esigma_phi_bin.ravel()[idx]
     Esigma_z_bin = Esigma_z_bin.ravel()[idx]
 
-    # 返回一维
+    # return 1D array
     return R_bin, z_bin, count, v_R_bin, v_phi_bin, v_z_bin, sigma_R_bin, sigma_phi_bin, sigma_z_bin, Ev_R_bin, Ev_phi_bin, Ev_z_bin, Esigma_R_bin, Esigma_phi_bin, Esigma_z_bin
 
 
@@ -201,28 +185,28 @@ def bin_statistics_2D_ERR(R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_li
 if __name__ == "__main__":
 
     if not os.path.exists("./GClist.npz"):
-        # 读取数据
+        # read fits
         print("reading fits ...", end="", flush=True)
         RA_list, DEC_list, DISTANCE_list, PARALLAX_list, PMRA_list, PMDEC_list, RV_list, ERR_PARALLAX_list, ERR_PMRA_list, ERR_PMDEC_list, ERR_RV_list = read_fits_to_GC.read_fits(
             "./LMRCV1.fits")
         print("done")
 
-        # 转换坐标
+        # convert corrdinates
         print("converting ICRS to GC ...", end="", flush=True)
         R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_list = read_fits_to_GC.ICRS_to_GC_list(
             RA_list, DEC_list, DISTANCE_list, PMRA_list, PMDEC_list, RV_list)
-        # 求误差
+        # evaluate uncertainties
         Ev_R_list, Ev_phi_list, Ev_z_list = velocity_uncertainty.err_v_list(RA_list, DEC_list, PARALLAX_list, PMRA_list, PMDEC_list, RV_list, ERR_PARALLAX_list, ERR_PMRA_list, ERR_PMDEC_list, ERR_RV_list)
         # Ev_R_list = np.abs(Ev_R_list)
         # Ev_phi_list = np.abs(Ev_phi_list)
         # Ev_z_list = np.abs(Ev_z_list)
         print("done")
-        # 暂存转换好的坐标
+        # save GC corrdinates list
         np.savez("GClist.npz", R_list=R_list, phi_list=phi_list, z_list=z_list, v_R_list=v_R_list,
                  v_phi_list=v_phi_list, v_z_list=v_z_list, Ev_R_list=Ev_R_list, Ev_phi_list=Ev_phi_list, Ev_z_list=Ev_z_list)
         print("GC list saved to ./GClist.npz")
     else:
-        # 直接读取暂存的GC坐标
+        # read cached GC list
         print("reading GClist from file ... ", end="", flush=True)
         f = np.load("./GClist.npz")
         R_list = f["R_list"]
@@ -237,13 +221,8 @@ if __name__ == "__main__":
         print("done")
         print("%d objects loaded!" % len(R_list))
 
-    # 计算平均速度、速度弥散
+    # calculate the <v> and sigma
     print("binned statistics ...", end="", flush=True)
-    # 3D
-    # R_bin, phi_bin, z_bin, count, v_R_bin, v_phi_bin, v_z_bin, sigma_R_bin, sigma_phi_bin, sigma_z_bin = bin_statistics_3D(R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_list)
-    # 2D 轴对称情形
-    # R_bin, z_bin, count, v_R_bin, v_phi_bin, v_z_bin, sigma_R_bin, sigma_phi_bin, sigma_z_bin = bin_statistics_2D(R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_list)
-    # 2D 轴对称情形 带误差
     R_bin, z_bin, count, v_R_bin, v_phi_bin, v_z_bin, sigma_R_bin, sigma_phi_bin, sigma_z_bin, Ev_R_bin, Ev_phi_bin, Ev_z_bin, Esigma_R_bin, Esigma_phi_bin, Esigma_z_bin = bin_statistics_2D_ERR(
         R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_list, Ev_R_list, Ev_phi_list, Ev_z_list)
     print("done")
@@ -258,68 +237,3 @@ if __name__ == "__main__":
             Ev_R_bin=Ev_R_bin, Ev_phi_bin=Ev_phi_bin,
             Ev_z_bin=Ev_z_bin, Esigma_R_bin=Esigma_R_bin, Esigma_phi_bin=Esigma_phi_bin, Esigma_z_bin=Esigma_z_bin)
     print("results saved to " + filename)
-
-    # # 绘图 先检查原始的恒星位置分布
-    # plt.figure(figsize=(8, 3))
-    # plt.subplot(131)
-    # plt.xlim(2, 25)
-    # plt.ylim(-6, 6)
-    # plt.hist2d(R_list, z_list, bins=30, range=[(2, 25), (-6, 6)])
-    # plt.xlabel("R [kpc]")
-    # plt.ylabel("z [kpc]")
-    # plt.title("GC density")
-    # # plt.show()
-
-    # # 检查return格式
-    # plt.subplot(132)
-    # plt.xlim(2, 25)
-    # plt.ylim(-6, 6)
-    # # plt.scatter(R_bin, z_bin, c=(count.ravel('F')))
-    # plt.pcolor(R_bin, z_bin, count)
-    # plt.title("udf bin - 2D")
-
-    # # 检查return格式
-    # plt.subplot(133)
-    # plt.xlim(2, 25)
-    # plt.ylim(-6, 6)
-    # plt.scatter(R_bin.ravel(), z_bin.ravel(), c=count.ravel(), marker='s', alpha=0.8, edgecolors="none", s=40)
-    # # plt.pcolor(R_bin, z_bin, count.T)
-    # plt.title("udf bin - 1D")
-    # plt.tight_layout()
-    # plt.show()
-
-    # plt.figure(figsize=(10, 3))
-    # plt.subplot(131)
-    # plt.title("sigma_z")
-    # plt.xlabel("R [kpc]")
-    # plt.ylabel("z [kpc]")
-    # plt.pcolor(R_bin, z_bin, sigma_z_bin,cmap="gist_heat_r")
-    # plt.colorbar(label="[km/s]")
-
-    # plt.subplot(132)
-    # plt.title("v_phi")
-    # plt.xlabel("R [kpc]")
-    # plt.ylabel("z [kpc]")
-    # plt.pcolor(R_bin, z_bin, v_phi_bin, cmap="jet_r")
-    # plt.colorbar(label="[km/s]")
-
-    # plt.subplot(133)
-    # plt.title("count")
-    # plt.xlabel("R [kpc]")
-    # plt.ylabel("z [kpc]")
-    # plt.pcolor(R_bin, z_bin, count, norm=LogNorm(vmin=1, vmax=count.max()), cmap="jet_r")
-    # plt.colorbar(label="count")
-    # plt.tight_layout()
-    # # plt.show()
-
-    # R = R_bin.ravel()
-    # v = v_phi_bin.ravel()
-    # z = z_bin.ravel()
-    # idx = np.concatenate(np.argwhere(np.logical_and(z>-1, z<1)))
-
-    # plt.figure(figsize=(6, 3))
-    # plt.scatter(R[idx], np.abs(v[idx]))
-    # plt.ylim(0, 250)
-    # plt.xlabel("R [kpc]")
-    # plt.ylabel(r"$v_\phi$" + " [kpc]")
-    # plt.show()

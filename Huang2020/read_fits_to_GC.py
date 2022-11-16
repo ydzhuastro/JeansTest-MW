@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-    赤道系ICRS转换成银心坐标系，请检查`v_sun`行UVW的值！
+    Converting ICRS to GC corrdinates;
+    Please check the values of UVW at the line of `v_sun`
     Author: Yongda Zhu (yzhu144@ucr.edu), Hai-Xia Ma
     ver. Jun 23, 2020
 """
@@ -113,13 +114,13 @@ def _test_ICRS_to_GC():
 
 def ICRS_to_GC_list(RA_list, DEC_list, DISTANCE_list, PMRA_list, PMDEC_list, RV_list):
     """
-        函数ICRS_to_GC的list封装，批量转换坐标，从ICRS到GC坐标系
+        ICRS_to_GC for a list of objects
         Args: 
             RA, DEC, DISTANCE, PMRA, PMDEC, RV : list
         Returns:
             R, phi, z, v_R, v_phi, v_z : list
     """
-    # 首先采用zip(*list)的写法，作用是：
+    # notes on zip(*list):
     # >>> l = [(1,2), (3,4), (8,9)]
     # >>> list(zip(*l))
     # [(1, 3, 8), (2, 4, 9)]
@@ -131,7 +132,7 @@ def ICRS_to_GC_list(RA_list, DEC_list, DISTANCE_list, PMRA_list, PMDEC_list, RV_
     tuple_list = list(zip(*values))
 
     print("  [ICRS_to_GC_list] " + "converting")
-    # 然后用list comprehension 把列表中的tuple变成list
+    # then we use list comprehension to convert tuple to list
     R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_list = [list(t) for t in tuple_list]
 
     return R_list, phi_list, z_list, v_R_list, v_phi_list, v_z_list
