@@ -32,40 +32,7 @@ def read_fits(filename):
     ERR_PMDEC_list=hdul[1].data.field('ERR_PMDEC')
     ERR_RV_list=hdul[1].data.field('ERR_RV')
     FEH_list=hdul[1].data.field('FEH')
-    AFE_list=hdul[1].data.field('AFE')
-
-    # chemical thin only
-    if False:
-        RA_list = np.array(RA_list)
-        DEC_list = np.array(DEC_list)
-        DISTANCE_list = np.array(DISTANCE_list)
-        PARALLAX_list = np.array(PARALLAX_list)
-        PMRA_list = np.array(PMRA_list)
-        PMDEC_list = np.array(PMDEC_list)
-        RV_list = np.array(RV_list)
-        ERR_PARALLAX_list = np.array(ERR_PARALLAX_list)
-        ERR_PMRA_list = np.array(ERR_PMRA_list)
-        ERR_PMDEC_list = np.array(ERR_PMDEC_list)
-        ERR_RV_list = np.array(ERR_RV_list)
-        FEH_list = np.array(FEH_list)
-        AFE_list = np.array(AFE_list)
-
-        idx = np.argwhere(AFE_list < -0.06*FEH_list+0.13)
-        idx = np.concatenate(idx)
-
-        RA_list           =  RA_list          [idx]                
-        DEC_list          =  DEC_list         [idx]                
-        DISTANCE_list     =  DISTANCE_list    [idx]                
-        PARALLAX_list     =  PARALLAX_list    [idx]                
-        PMRA_list         =  PMRA_list        [idx]                
-        PMDEC_list        =  PMDEC_list       [idx]                
-        RV_list           =  RV_list          [idx]                
-        ERR_PARALLAX_list =  ERR_PARALLAX_list[idx]                
-        ERR_PMRA_list     =  ERR_PMRA_list    [idx]                
-        ERR_PMDEC_list    =  ERR_PMDEC_list   [idx]                
-        ERR_RV_list       =  ERR_RV_list      [idx]                
-        FEH_list          =  FEH_list         [idx]                
-        AFE_list          =  AFE_list         [idx]                
+    AFE_list=hdul[1].data.field('AFE')         
 
     return RA_list, DEC_list, DISTANCE_list, PARALLAX_list, PMRA_list, PMDEC_list, RV_list, ERR_PARALLAX_list, ERR_PMRA_list, ERR_PMDEC_list, ERR_RV_list
 
