@@ -55,6 +55,8 @@ plt.plot(model[:,0], model[:,3], linewidth=1, c=linecolor[2], label="QUMOND")
 plt.plot(model[:,0], model[:,2], linewidth=1, c=linecolor[1], label="Newtonian + DM")
 plt.plot(model[:,0], model[:,4], linewidth=1, c=linecolor[3], label="MOG")
 
+plt.vlines(8.2, 0, 300, ls='dotted', lw=0.5)
+
 plt.xlabel("$R\, [\mathrm{kpc}]$")
 plt.ylabel("$v_\mathrm{c}\, [\mathrm{km/s}]$")
 plt.xlim(3, 30)
@@ -66,4 +68,4 @@ ax.xaxis.set_ticks_position('both')
 ax.yaxis.set_ticks_position('both')
 ax.tick_params(direction="in", which="both")
 
-plt.savefig("RC_W22_stddev.pdf", dpi=300)
+plt.savefig("RC_W22_stddev.eps", dpi=600, format='eps')
